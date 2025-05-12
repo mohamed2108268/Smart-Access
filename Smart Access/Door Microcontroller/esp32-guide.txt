@@ -1,0 +1,164 @@
+/*
+ESP32 Integration for SmartAccess System
+
+This code polls the SmartAccess API server to check if a room should be unlocked
+and controls the door lock mechanism accordingly. 
+
+Components needed:
+- ESP32 board
+- Relay module for controlling the door lock mechanism
+- WiFi connection
+
+Setup:
+1. Update WiFi credentials (ssid and password)
+2. Update server address and port
+3. Set the room_id to match the ID in your system
+4. Connect relay to GPIO pin 13 (or change relayPin variable)
+*/
+
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+// WiFi credentials
+const char* ssid = "YourWiFiName";
+const char* password = "YourWiFiPassword";
+
+// Server configuration
+const char* serverAddress = "http://192.168.1.100:8000"; // Change to your server address
+const char* roomStatusEndpoint = "/api/rooms/%s/status/"; // %s will be replaced with room_id
+const char* room_id = "R101"; // Change to match the room ID in your system
+
+// Hardware configuration
+const int relayPin = 13; // GPIO pin connected to the relay module
+const int ledPin = 2;    // Built-in LED for status indication
+
+// Timing configuration
+const int pollInterval = 2000;   // Time between polls in milliseconds
+const int unlockDuration = 30000; // Maximum time door stays unlocked in milliseconds
+
+// Variables
+bool doorUnlocked = false;
+unsigned long unlockTime = 0;
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(115200);
+  Serial.println("SmartAccess ESP32 Door Controller");
+  
+  // Initialize GPIO pins
+  pinMode(relayPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  
+  // Start with door locked
+  digitalWrite(relayPin, LOW);
+  digitalWrite(ledPin, LOW);
+  
+  // Connect to WiFi
+  connectToWiFi();
+}
+
+void loop() {
+  // Check if WiFi is connected
+  if(WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi connection lost. Reconnecting...");
+    connectToWiFi();
+  }
+  
+  // Check if door should be locked due to timeout
+  if(doorUnlocked && (millis() - unlockTime >= unlockDuration)) {
+    Serial.println("Door lock timeout - locking door");
+    lockDoor();
+  }
+  
+  // Poll server for room status
+  checkRoomStatus();
+  
+  // Wait before next poll
+  delay(pollInterval);
+}
+
+void connectToWiFi() {
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void checkRoomStatus() {
+  HTTPClient http;
+  
+  // Format the URL with room_id
+  char url[100];
+  sprintf(url, "%s%s", serverAddress, roomStatusEndpoint);
+  sprintf(url, url, room_id);
+  
+  Serial.print("Polling URL: ");
+  Serial.println(url);
+  
+  // Begin HTTP request
+  http.begin(url);
+  
+  // Send GET request
+  int httpCode = http.GET();
+  
+  // Check if request was successful
+  if(httpCode > 0) {
+    Serial.print("HTTP response code: ");
+    Serial.println(httpCode);
+    
+    if(httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.print("Response: ");
+      Serial.println(payload);
+      
+      // Parse JSON response
+      DynamicJsonDocument doc(1024);
+      DeserializationError error = deserializeJson(doc, payload);
+      
+      if(!error) {
+        bool isUnlocked = doc["is_unlocked"];
+        Serial.print("Door should be: ");
+        Serial.println(isUnlocked ? "UNLOCKED" : "LOCKED");
+        
+        // Update door state if needed
+        if(isUnlocked && !doorUnlocked) {
+          unlockDoor();
+        } else if(!isUnlocked && doorUnlocked) {
+          lockDoor();
+        }
+      } else {
+        Serial.print("JSON parsing error: ");
+        Serial.println(error.c_str());
+      }
+    }
+  } else {
+    Serial.print("HTTP request failed, error: ");
+    Serial.println(http.errorToString(httpCode).c_str());
+  }
+  
+  http.end();
+}
+
+void unlockDoor() {
+  Serial.println("Unlocking door");
+  digitalWrite(relayPin, HIGH); // Activate relay
+  digitalWrite(ledPin, HIGH);   // Turn on LED
+  doorUnlocked = true;
+  unlockTime = millis();        // Record time of unlock
+}
+
+void lockDoor() {
+  Serial.println("Locking door");
+  digitalWrite(relayPin, LOW);  // Deactivate relay
+  digitalWrite(ledPin, LOW);    // Turn off LED
+  doorUnlocked = false;
+}

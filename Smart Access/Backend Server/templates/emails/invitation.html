@@ -1,0 +1,102 @@
+<!-- templates/emails/invitation.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitation to BioAccess Control System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .invite-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .expiry {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <!-- <img src="https://yourdomain.com/logo.png" alt="BioAccess Logo" class="logo"> -->
+        <h1>BioAccess Control System</h1>
+    </div>
+    
+    <div class="invite-box">
+        <p>Hello,</p>
+        
+        <p>You have been invited to join <strong>{{ company_name }}</strong> as a <strong>{{ role }}</strong> on the BioAccess Control System.</p>
+        
+        <p>This invitation was sent by <strong>{{ sender_name }}</strong>.</p>
+        
+        <p>To complete your registration, please click the button below:</p>
+        
+        <a href="{{ invitation_url }}" class="button">Register Now</a>
+        
+        <p>Or copy and paste this URL into your browser:</p>
+        <p>{{ invitation_url }}</p>
+        
+        <p class="expiry">This invitation will expire on {{ expiry_date }}.</p>
+    </div>
+    
+    <p>During registration, you will need to:</p>
+    <ol>
+        <li>Create your account with a username and password</li>
+        <li>Provide your contact information</li>
+        <li>Set up facial and voice biometric authentication</li>
+    </ol>
+    
+    <p>Please make sure you have a camera and microphone available for the biometric setup process.</p>
+    
+    <p>If you have any questions, please contact your administrator.</p>
+    
+    <div class="footer">
+        <p>&copy; 2025 BioAccess Control System. All rights reserved.</p>
+        <p>This is an automated message, please do not reply.</p>
+    </div>
+</body>
+</html>
