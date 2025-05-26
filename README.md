@@ -1,6 +1,6 @@
 # SmartAccess: Biometric Access Control System
 
-This is my graduation project for the Computer Science program. It's a biometric access control system that uses facial recognition and voice verification to control access to rooms.
+Our graduation project is a biometric access control system that uses facial recognition and voice verification to control access to rooms.
 
 ## Project Overview
 
