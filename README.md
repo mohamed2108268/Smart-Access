@@ -60,6 +60,3 @@ The ESP32 microcontrollers poll the server periodically to check if a room shoul
 - Develop admin mobile app
 - Add support for temporary access passes
 
-## Contact
-
-Created by [Your Name] - feel free to contact me!
